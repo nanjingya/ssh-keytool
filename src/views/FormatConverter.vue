@@ -12,6 +12,9 @@
             <el-radio-button value="ssh2pem">SSH 公钥 → PEM（SPKI）</el-radio-button>
             <el-radio-button value="pem2ssh">PEM（SPKI）→ SSH 公钥</el-radio-button>
           </el-radio-group>
+          <div style="font-size:12px;color:#6b7280;margin-top:6px">
+            支持 RSA、ECDSA P-256/P-384/P-521、Ed25519
+          </div>
         </el-form-item>
 
         <el-form-item :label="inputLabel">
@@ -101,9 +104,9 @@ async function convert() {
   output.value = ''
   try {
     if (direction.value === 'ssh2pem') {
-      output.value = opensshPublicToPem(raw)
+      output.value = await opensshPublicToPem(raw)
     } else {
-      output.value = pemToOpenSSHPublic(raw)
+      output.value = await pemToOpenSSHPublic(raw)
     }
   } catch (e) {
     error.value = String(e)
