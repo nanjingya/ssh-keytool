@@ -72,8 +72,16 @@ function b64Encode(data: Uint8Array): string {
   return btoa(String.fromCharCode(...data))
 }
 
+function normalizeBase64(b64: string): string {
+  const trimmed = b64.trim()
+  const mod = trimmed.length % 4
+  if (mod === 0) return trimmed
+  return trimmed + '='.repeat(4 - mod)
+}
+
 function b64Decode(b64: string): Uint8Array {
-  return Uint8Array.from(atob(b64), c => c.charCodeAt(0))
+  const normalized = normalizeBase64(b64)
+  return Uint8Array.from(atob(normalized), c => c.charCodeAt(0))
 }
 
 function pemToDer(pem: string): Uint8Array {
@@ -370,9 +378,6 @@ export async function parsePublicKey(keyStr: string): Promise<ParsedPublicKey> {
   if (!/^[A-Za-z0-9+/]+=*$/.test(b64)) {
     throw new Error('Base64 编码含非法字符，请检查公钥是否被截断或损坏')
   }
-  if (b64.length % 4 !== 0) {
-    throw new Error(`Base64 长度 ${b64.length} 不是 4 的倍数，可能被截断`)
-  }
 
   let blob: Uint8Array
   try {
@@ -463,6 +468,18 @@ export async function parsePublicKey(keyStr: string): Promise<ParsedPublicKey> {
   }
 
   return { type, comment, blob, details, fingerprint }
+}
+
+export async function fingerprintFromBase64Blob(base64Blob: string): Promise<{ sha256: string; md5: string }> {
+  const b64 = base64Blob.trim()
+  if (!/^[A-Za-z0-9+/]+=*$/.test(b64)) {
+    throw new Error('Base64 编码含非法字符，请检查是否复制完整')
+  }
+  const blob = b64Decode(b64)
+  if (blob.length < 12) {
+    throw new Error(`公钥 Blob 仅 ${blob.length} B，过短（最少 12 B）`)
+  }
+  return fingerprintFromBlob(blob)
 }
 
 // ─── Extract public key from private key ──────────────────────────────────────

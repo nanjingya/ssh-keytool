@@ -90,11 +90,13 @@ async function calc() {
   error.value = ''
   result.value = null
   try {
-    // Accept either full SSH public key or just the base64 blob
-    const { parsePublicKey } = await import('@/utils/ssh')
-    const keyStr = raw.includes(' ') ? raw : `unknown ${raw}`
-    const parsed = await parsePublicKey(keyStr)
-    result.value = parsed.fingerprint
+    const { parsePublicKey, fingerprintFromBase64Blob } = await import('@/utils/ssh')
+    if (raw.includes(' ')) {
+      const parsed = await parsePublicKey(raw)
+      result.value = parsed.fingerprint
+    } else {
+      result.value = await fingerprintFromBase64Blob(raw)
+    }
   } catch (e) {
     error.value = String(e)
   } finally {
