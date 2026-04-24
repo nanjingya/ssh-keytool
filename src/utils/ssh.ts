@@ -204,9 +204,12 @@ async function buildOpenSSHPrivateKey(
   const check = secureRandomU32()
   const body = concat(u32(check), u32(check), privParts, sshStr(comment))
 
-  // Padding to 8-byte block boundary: bytes 0x01 0x02 0x03 ...
-  const rem = body.length % 8
-  const padding = rem ? new Uint8Array(8 - rem).map((_, i) => i + 1) : new Uint8Array(0)
+  // OpenSSH requires padding to cipher block size.
+  // - unencrypted ("none"): treat as 8-byte alignment (OpenSSH convention)
+  // - aes256-ctr: 16-byte block size
+  const blockSize = (passphrase && passphrase.length > 0) ? 16 : 8
+  const rem = body.length % blockSize
+  const padding = rem ? new Uint8Array(blockSize - rem).map((_, i) => i + 1) : new Uint8Array(0)
   const padded = concat(body, padding)
 
   let cipher = 'none'

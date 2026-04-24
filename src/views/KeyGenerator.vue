@@ -60,6 +60,12 @@
             <span class="strength-label" :class="strength.cls">{{ strength.label }}</span>
           </div>
 
+          <!-- 弱密码提示 -->
+          <div v-if="strength.cls === 'weak'" class="strength-tip">
+            <el-icon><WarningFilled /></el-icon>
+            建议 ≥16 位并混合大小写字母 + 数字 + 特殊字符，当前强度不足以抵御离线暴力破解
+          </div>
+
           <!-- 无密码警告 -->
           <div v-if="!form.passphrase" class="passphrase-warn">
             <el-icon><Warning /></el-icon>
@@ -189,7 +195,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { generateRSA, generateECDSA, generateEd25519 } from '@/utils/ssh'
 import type { SSHKeyPair } from '@/utils/ssh'
 
 const form = ref({ type: 'Ed25519', comment: '', passphrase: '' })
@@ -244,6 +249,8 @@ async function generate() {
   const comment = form.value.comment.trim() || 'ssh-keytool'
   const passphrase = form.value.passphrase || undefined
   try {
+    // Dynamic import: forge + noble + bcrypt (~1.5MB) loads only on first click
+    const { generateRSA, generateECDSA, generateEd25519 } = await import('@/utils/ssh')
     switch (form.value.type) {
       case 'RSA-2048':   result.value = await generateRSA(2048, comment, passphrase); break
       case 'RSA-4096':   result.value = await generateRSA(4096, comment, passphrase); break
@@ -305,6 +312,14 @@ function download(content: string, filename: string) {
 .strength-label.medium { color: #f59e0b; }
 .strength-label.good   { color: #3b82f6; }
 .strength-label.strong { color: #22c55e; }
+
+.strength-tip {
+  display: flex; align-items: flex-start; gap: 6px;
+  margin-top: 6px; padding: 7px 11px; border-radius: 6px;
+  background: #fef2f2; border: 1px solid #fecaca;
+  font-size: 12px; color: #b91c1c; line-height: 1.5;
+}
+.strength-tip .el-icon { margin-top: 2px; flex-shrink: 0; }
 
 .algo-hint {
   display: flex; align-items: flex-start; gap: 8px;

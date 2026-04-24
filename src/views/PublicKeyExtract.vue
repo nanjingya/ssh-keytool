@@ -84,7 +84,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { extractPublicKey, parsePublicKey } from '@/utils/ssh'
 
 const input = ref('')
 const comment = ref('')
@@ -108,9 +107,9 @@ async function extract() {
   result.value = ''
   fingerprint.value = null
   try {
+    const { extractPublicKey, parsePublicKey } = await import('@/utils/ssh')
     const pubKey = await extractPublicKey(raw, comment.value.trim() || 'extracted-key')
     result.value = pubKey
-    // Calculate fingerprint
     const parsed = await parsePublicKey(pubKey)
     fingerprint.value = parsed.fingerprint
     ElMessage.success('公钥提取成功')

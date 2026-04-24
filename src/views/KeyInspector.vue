@@ -86,7 +86,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { parsePublicKey } from '@/utils/ssh'
 import type { ParsedPublicKey } from '@/utils/ssh'
 
 const input = ref('')
@@ -118,6 +117,7 @@ async function inspect() {
   error.value = ''
   result.value = null
   try {
+    const { parsePublicKey } = await import('@/utils/ssh')
     result.value = await parsePublicKey(input.value.trim())
   } catch (e) {
     error.value = String(e)

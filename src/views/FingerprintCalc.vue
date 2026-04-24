@@ -77,7 +77,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { parsePublicKey } from '@/utils/ssh'
 
 const input = ref('')
 const loading = ref(false)
@@ -92,6 +91,7 @@ async function calc() {
   result.value = null
   try {
     // Accept either full SSH public key or just the base64 blob
+    const { parsePublicKey } = await import('@/utils/ssh')
     const keyStr = raw.includes(' ') ? raw : `unknown ${raw}`
     const parsed = await parsePublicKey(keyStr)
     result.value = parsed.fingerprint

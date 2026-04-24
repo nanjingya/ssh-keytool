@@ -64,7 +64,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { pemToOpenSSHPublic, opensshPublicToPem } from '@/utils/ssh'
 
 const direction = ref<'ssh2pem' | 'pem2ssh'>('ssh2pem')
 const input = ref('')
@@ -103,6 +102,7 @@ async function convert() {
   error.value = ''
   output.value = ''
   try {
+    const { opensshPublicToPem, pemToOpenSSHPublic } = await import('@/utils/ssh')
     if (direction.value === 'ssh2pem') {
       output.value = await opensshPublicToPem(raw)
     } else {
